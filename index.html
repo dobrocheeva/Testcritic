@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тест: Внутренние критики</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- Intro screen -->
+  <section id="screen-intro" class="screen active">
+    <div class="card intro-card">
+      <div class="intro-icon">🪞</div>
+      <h1>Внутренние критики</h1>
+      <p class="subtitle">20 вопросов, чтобы увидеть, какие голоса внутри тебя звучат громче всего прямо сейчас.</p>
+      <ul class="intro-notes">
+        <li>Отвечай быстро, первым импульсом — «да» или «нет»</li>
+        <li>Здесь нет правильных ответов</li>
+        <li>Займёт примерно 2–3 минуты</li>
+      </ul>
+      <button class="btn btn-primary" id="btn-start">Начать тест</button>
+    </div>
+  </section>
+
+  <!-- Quiz screen -->
+  <section id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <span class="progress-label" id="progress-label">1 / 20</span>
+    </div>
+    <div class="card question-card">
+      <p class="question-number" id="question-number">Вопрос 1</p>
+      <h2 class="question-text" id="question-text"></h2>
+      <div class="answers">
+        <button class="btn btn-answer btn-yes" id="btn-yes">Да</button>
+        <button class="btn btn-answer btn-no" id="btn-no">Нет</button>
+      </div>
+      <button class="btn-link" id="btn-back">← Назад</button>
+    </div>
+  </section>
+
+  <!-- Results screen -->
+  <section id="screen-results" class="screen">
+    <div class="results-header">
+      <div class="results-icon">✨</div>
+      <h1>Твои активные критики</h1>
+      <p class="subtitle" id="results-subtitle"></p>
+    </div>
+    <div class="results-list" id="results-list"></div>
+    <div class="card legend-card">
+      <h3>Как читать результат</h3>
+      <div class="legend-row"><span class="badge badge-strong">Выражен явно</span><span>оба «да» в паре вопросов — этот голос сейчас ведёт себя очень активно</span></div>
+      <div class="legend-row"><span class="badge badge-present">Присутствует</span><span>одно «да» — критик есть, но не в лидерах</span></div>
+    </div>
+    <button class="btn btn-primary" id="btn-restart">Пройти тест заново</button>
+  </section>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
