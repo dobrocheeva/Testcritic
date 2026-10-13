@@ -1,6 +1,5 @@
 const TESTCRITIC_CONFIG = Object.freeze({
-  // E4B will enable tracking by setting one HTTPS endpoint here.
-  trackingEndpoint: null
+  trackingEndpoint: "https://api.dobrocheeva.ru/telegram/miniapp/test-events"
 });
 
 const TRACKING_EVENT_TYPES = Object.freeze({
