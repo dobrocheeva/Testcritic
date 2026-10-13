@@ -1,3 +1,98 @@
+const TESTCRITIC_CONFIG = Object.freeze({
+  // E4B will enable tracking by setting one HTTPS endpoint here.
+  trackingEndpoint: null
+});
+
+const TRACKING_EVENT_TYPES = Object.freeze({
+  opened: "telegram.test.opened",
+  completed: "telegram.test.completed"
+});
+
+function parseFunnelEntryId(search = window.location.search) {
+  try {
+    const rawEntry = new URLSearchParams(search).get("entry");
+    if (rawEntry === null || !/^[1-9]\d*$/.test(rawEntry)) return null;
+
+    const entryId = Number(rawEntry);
+    return Number.isSafeInteger(entryId) ? entryId : null;
+  } catch {
+    return null;
+  }
+}
+
+function initializeTelegramContext() {
+  const webApp = window.Telegram && window.Telegram.WebApp;
+  const initData = webApp && typeof webApp.initData === "string"
+    ? webApp.initData
+    : "";
+
+  // The SDK also exists in a regular browser, where initData is empty.
+  if (!webApp || !initData) {
+    return { isTelegramMiniApp: false, initData: "" };
+  }
+
+  try {
+    if (typeof webApp.ready === "function") webApp.ready();
+  } catch {}
+
+  try {
+    if (typeof webApp.expand === "function") webApp.expand();
+  } catch {}
+
+  document.documentElement.classList.add("telegram-webapp");
+  return { isTelegramMiniApp: true, initData };
+}
+
+function buildTrackingPayload(eventType, integrationContext) {
+  const isKnownEvent = Object.values(TRACKING_EVENT_TYPES).includes(eventType);
+  if (!isKnownEvent ||
+      !integrationContext.isTelegramMiniApp ||
+      !integrationContext.initData ||
+      integrationContext.funnelEntryId === null) {
+    return null;
+  }
+
+  return {
+    schema_version: 1,
+    event_type: eventType,
+    funnel_entry_id: integrationContext.funnelEntryId,
+    init_data: integrationContext.initData
+  };
+}
+
+function createTrackingClient(integrationContext) {
+  return Object.freeze({
+    async send(eventType) {
+      const endpoint = TESTCRITIC_CONFIG.trackingEndpoint;
+      const payload = buildTrackingPayload(eventType, integrationContext);
+
+      // Tracking stays disabled in E4A and must never affect the test flow.
+      if (!endpoint || !payload || typeof window.fetch !== "function") return false;
+
+      try {
+        const response = await window.fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          credentials: "omit",
+          cache: "no-store"
+        });
+        return response.ok;
+      } catch {
+        return false;
+      }
+    }
+  });
+}
+
+const telegramContext = initializeTelegramContext();
+const integrationContext = Object.freeze({
+  funnelEntryId: parseFunnelEntryId(),
+  isTelegramMiniApp: telegramContext.isTelegramMiniApp,
+  initData: telegramContext.initData
+});
+const trackingClient = createTrackingClient(integrationContext);
+
 const QUESTIONS = [
   "Достигнув цели, ты почти сразу находишь, что могла сделать лучше?",
   "Ты часто оказываешься тем человеком, который решает чужие проблемы?",
@@ -77,6 +172,7 @@ function answer(value) {
     renderQuestion();
   } else {
     showResults();
+    void trackingClient.send(TRACKING_EVENT_TYPES.completed);
   }
 }
 
@@ -148,3 +244,7 @@ document.getElementById("btn-yes").addEventListener("click", () => answer(true))
 document.getElementById("btn-no").addEventListener("click", () => answer(false));
 document.getElementById("btn-back").addEventListener("click", goBack);
 document.getElementById("btn-restart").addEventListener("click", restart);
+
+window.addEventListener("load", () => {
+  void trackingClient.send(TRACKING_EVENT_TYPES.opened);
+}, { once: true });
